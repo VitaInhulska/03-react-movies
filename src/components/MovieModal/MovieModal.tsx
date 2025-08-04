@@ -1,6 +1,6 @@
+import { useEffect } from "react";
 import { createPortal } from "react-dom";
 import css from "./MovieModal.module.css";
-import { useEffect } from "react";
 import type { Movie } from "../../types/movie";
 
 interface MovieModalProps {
@@ -50,11 +50,7 @@ export default function MovieModal({
           &times;
         </button>
         <img
-          src={
-            backdrop_path
-              ? "https://image.tmdb.org/t/p/original/" + backdrop_path
-              : "https://img.freepik.com/free-photo/assortment-cinema-elements-red-background-with-copy-space_23-2148457848.jpg"
-          }
+          src={`https://image.tmdb.org/t/p/original${backdrop_path}`}
           alt={title}
           className={css.image}
         />

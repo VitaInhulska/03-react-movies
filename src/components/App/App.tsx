@@ -1,58 +1,52 @@
 import { useState } from "react";
-import ErrorMessage from "../ErrorMessage/ErrorMessage";
-import Loader from "../Loader/Loader";
-import MovieGrid from "../MovieGrid/MovieGrid";
-import MovieModal from "../MovieModal/MovieModal";
 import SearchBar from "../SearchBar/SearchBar";
+import MovieGrid from "../MovieGrid/MovieGrid";
+import Loader from "../Loader/Loader";
+import ErrorMessage from "../ErrorMessage/ErrorMessage";
+import MovieModal from "../MovieModal/MovieModal";
 import css from "./App.module.css";
 import toast, { Toaster } from "react-hot-toast";
-import { type Movie } from "../../types/movie";
+import type { Movie } from "../../types/movie";
 import { fetchMovies } from "../../services/movieService";
 
 export default function App() {
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [hasError, setHasError] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isError, setIsError] = useState(false);
   const [currentMovie, setCurrentMovie] = useState<Movie | null>(null);
-  const showLoader = () => setIsLoading(true);
-  const hideLoader = () => setIsLoading(false);
-  const modalOpen = () => setIsModalOpen(true);
-  const modalClose = () => setIsModalOpen(false);
-  const selectMovie = (movie: Movie) => {
-    setCurrentMovie(movie);
-    modalOpen();
-  };
-
   const [movies, setMovies] = useState<Movie[]>([]);
 
-  const searchSubmit = async (query: string) => {
-    showLoader();
-    setHasError(false);
+  const handleSearch = async (query: string) => {
     setMovies([]);
+    setIsError(false);
+    setIsLoading(true);
     try {
-      const data = await fetchMovies(query);
-      if (data.length == 0) {
-        toast.error("No movies found for your request.");
-        return;
+      const results = await fetchMovies(query);
+      if (results.length === 0) {
+        toast("No movies found for your request.");
       }
-      setMovies(data);
+      setMovies(results);
     } catch {
-      setHasError(true);
+      setIsError(true);
     } finally {
-      hideLoader();
+      setIsLoading(false);
     }
   };
 
+  const handleSelect = (movie: Movie) => setCurrentMovie(movie);
+  const handleCloseModal = () => setCurrentMovie(null);
+
   return (
     <div className={css.app}>
-      <Toaster />
-      <SearchBar onSubmit={searchSubmit} />
-      <MovieGrid onSelect={selectMovie} movies={movies} />
+      <SearchBar onSubmit={handleSearch} />
       {isLoading && <Loader />}
-      {hasError && <ErrorMessage />}
-      {isModalOpen && currentMovie && (
-        <MovieModal onClose={modalClose} movie={currentMovie} />
+      {isError && <ErrorMessage />}
+      {movies.length > 0 && (
+        <MovieGrid movies={movies} onSelect={handleSelect} />
       )}
+      {currentMovie && (
+        <MovieModal movie={currentMovie} onClose={handleCloseModal} />
+      )}
+      <Toaster />
     </div>
   );
 }
